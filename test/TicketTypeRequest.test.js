@@ -26,7 +26,7 @@ describe("TicketTypeRequest", () => {
         (type, noOfTickets) => {
             expect(() => {
                 new TicketTypeRequest(type, noOfTickets);
-            }).toThrow("noOfTickets must be an integer");
+            }).toThrow(new TypeError("noOfTickets must be an integer"));
         }
     );
 
