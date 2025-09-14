@@ -1,9 +1,13 @@
- import * as winston from "winston";
- const logConfig = {
-   "transports": [
-     new winston.transports.Console()
-   ]
- }
- const logger = winston.createLogger(logConfig);
+import * as winston from "winston";
+import dotenv from "dotenv";
+dotenv.config();
 
- export default logger
+const logConfig = {
+  "level": process.env.LOG_LEVEL || "info",
+  "transports": [
+    new winston.transports.Console()
+  ]
+}
+const logger = winston.createLogger(logConfig);
+
+export default logger
