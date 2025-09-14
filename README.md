@@ -5,6 +5,8 @@ NOTE - REQUIRES NODE VERSION ^20
 ## How to use this module
 To begin - clone the repo and run `npm install` to install required dependencies
 To run unit tests - `npm test`
+To use other logging levels, create an .env file at root of project as appropriate with `LOG_LEVEL=debug`
+(this file can be used to bring in any additional environment variables such as api URLs at later date)
 
 ## Business Rules
 Currently 3 types of ticket allowed, (ADULT, CHILD, INFANT)
@@ -14,9 +16,9 @@ Current Prices (ADULT = 25, CHILD = 15, INFANT = 0)
 Infants currently free but must sit on an adult lap
 
 ## Error handling
-Throws TypeError for invalid accountIDs (TicketTypeRequest & external services)
-Throws InvalidPurchaseException for 
-* invalid accountId (forwarded from TypeError thrown by TicketTypeRequest)
+Throws TypeError, InvalidPurchaseException
+* invalid accountId (forwarded from TypeError thrown by TicketTypeRequest or external services)
+* incorrect ticket type requested (forwarded from TypeError thrown by TicketTypeRequest)
 * booking request without an adult present
 * booking request with insufficient adults present for infants on 1>1 basis
 * booking request with invalid values for the number of tickets
@@ -32,5 +34,6 @@ Unit testing and mocking provided using Vitest
 
 ## CI/CD Pipeline
 A very simple Github Actions pipeline has been added to run simple static quality checks
+
 
 

@@ -1,20 +1,22 @@
 import TicketUtilService from "../src/pairtest/lib/utils/TicketUtilService";
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as TestData from "./TestData";
-import InvalidPurchaseException from "../src/pairtest/lib/InvalidPurchaseException";
 
-test('it should be defined', () => {
-    expect(TicketUtilService).toBeDefined();
+const ticketUtilService = new TicketUtilService();
+
+test("it should be defined", () => {
+    expect(ticketUtilService).toBeDefined();
 }
 );
 
-test('should have max ticket limit', () => {
-    expect(TicketUtilService.MAXIMUM_TICKET_LIMIT).toBe(25);
+test("should have max ticket limit", () => {
+    expect(ticketUtilService.MAXIMUM_TICKET_LIMIT).toBe(25);
 })
 
-describe('isValidAccountID', () => {
+
+describe("isValidAccountID", () => {
     test("should be defined", () => {
-        expect(TicketUtilService.isValidAccountID).toBeDefined();
+        expect(ticketUtilService.isValidAccountID).toBeDefined();
     });
 
     test.each([
@@ -24,7 +26,7 @@ describe('isValidAccountID', () => {
     ])(
         "it should return %j for accountID %j (%j)",
         (result, accountId) => {
-            expect(TicketUtilService.isValidAccountID(accountId)).toBe(result);
+            expect(ticketUtilService.isValidAccountID(accountId)).toBe(result);
         }
     );
 
@@ -38,16 +40,16 @@ describe('isValidAccountID', () => {
         "it should throw error for request %j (%j)",
         (id) => {
             expect(() => {
-                TicketUtilService.isValidAccountID(id);
-            }).toThrow(new InvalidPurchaseException("Account ID must be a positive integer"));
+                ticketUtilService.isValidAccountID(id);
+            }).toThrow("UtilService error: Invalid account ID provided");
         }
     );
 
 });
 
-describe('hasValidAmountOfAdultsPresent', () => {
+describe("hasValidAmountOfAdultsPresent", () => {
     test("should be defined", () => {
-        expect(TicketUtilService.hasValidAmountOfAdultsPresent).toBeDefined();
+        expect(ticketUtilService.hasValidAmountOfAdultsPresent).toBeDefined();
     });
 
     test.each([
@@ -56,7 +58,7 @@ describe('hasValidAmountOfAdultsPresent', () => {
     ])(
         "it should return true for request %j (%j)",
         (result, request) => {
-            expect(TicketUtilService.hasValidAmountOfAdultsPresent(request)).toBe(result);
+            expect(ticketUtilService.hasValidAmountOfAdultsPresent(request)).toBe(result);
         }
     );
     test.each([
@@ -65,27 +67,27 @@ describe('hasValidAmountOfAdultsPresent', () => {
         [TestData.twoChildReq, "2 children no adult"],
         [TestData.childrenAndInfantsWithZeroAdultReq, "Zero adult, 2 child, 2 infant"]
     ])(
-        "it should throw an error for request %j (%j)",
+        "it should throw error for request %j (%j)",
         (request) => {
             expect(() => {
-                TicketUtilService.hasValidAmountOfAdultsPresent(request);
-            }).toThrow(new InvalidPurchaseException("Request did not contain the required number of adults"));
+                ticketUtilService.hasValidAmountOfAdultsPresent(request);
+            }).toThrow("Request did not contain the required number of adults");
         }
     );
 });
 
 describe("countAndValidateTicketsInRequest", () => {
     test("should be defined", () => {
-        expect(TicketUtilService.countAndValidateTicketsInRequest).toBeDefined();
+        expect(ticketUtilService.countAndValidateTicketsInRequest).toBeDefined();
     });
 
     test.each([
         [4, TestData.familyReq, "1 adult 2 child 1 infant"],
-        [0, [TestData.zeroAdultReq], "0 adults - param intialised to 0"],
+        [0, [TestData.zeroAdultReq], "0 adults"],
     ])(
         "it should return %j for request %j (%j)",
         (result, request) => {
-            expect(TicketUtilService.countAndValidateTicketsInRequest(request)).toBe(result);
+            expect(ticketUtilService.countAndValidateTicketsInRequest(request)).toBe(result);
         }
     );
     test.each([
@@ -95,8 +97,8 @@ describe("countAndValidateTicketsInRequest", () => {
         "it should throw error for request %j (%j)",
         (request) => {
             expect(() => {
-                TicketUtilService.countAndValidateTicketsInRequest(request);
-            }).toThrow(new InvalidPurchaseException("Maximum ticket limit exceeded"));
+                ticketUtilService.countAndValidateTicketsInRequest(request);
+            }).toThrow("Maximum ticket limit exceeded");
         }
     );
 
@@ -104,35 +106,35 @@ describe("countAndValidateTicketsInRequest", () => {
 
 describe("countSeatsInRequest", () => {
     test("should be defined", () => {
-        expect(TicketUtilService.countSeatsInRequest).toBeDefined();
+        expect(ticketUtilService.countSeatsInRequest).toBeDefined();
     });
 
     test.each([
         [3, TestData.familyReq, "1 adult 2 child 1 infant"],
         [25, TestData.familyTooBigReq, "25 adults 1 infant"],
-        [0, TestData.zeroAdultReq, "0 adults - param intialised to 0"],
+        [0, TestData.zeroAdultReq, "0 adults"],
     ])(
         "it should return %j for request %j (%j)",
         (result, request) => {
-            expect(TicketUtilService.countSeatsInRequest(request)).toBe(result);
+            expect(ticketUtilService.countSeatsInRequest(request)).toBe(result);
         }
     );
 });
 
 describe("calculatePayment", () => {
     test("should be defined", () => {
-        expect(TicketUtilService.calculatePayment).toBeDefined();
+        expect(ticketUtilService.calculatePayment).toBeDefined();
     });
 
     test.each([
         [55, TestData.familyReq, "1 adult 2 child 1 infant"],
         [0, TestData.twoInfantReq, "2 infant"],
         [625, TestData.familyTooBigReq, "25 adults 1 infant"],
-        [0, TestData.zeroAdultReq, "0 adults - param intialised to 0"],
+        [0, TestData.zeroAdultReq, "0 adults"],
     ])(
         "it should return %j for request %j (%j)",
         (result, request) => {
-            expect(TicketUtilService.calculatePayment(request)).toBe(result);
+            expect(ticketUtilService.calculatePayment(request)).toBe(result);
         }
     );
     

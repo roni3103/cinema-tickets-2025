@@ -6,10 +6,10 @@ import InvalidPurchaseException from "../InvalidPurchaseException";
  */
 
 export default class TicketUtilService {
-    static MAXIMUM_TICKET_LIMIT = 25;
-    static ADULT_TICKET_PRICE = 25;
-    static CHILD_TICKET_PRICE = 15;
-    static INFANT_TICKET_PRICE = 0;
+    MAXIMUM_TICKET_LIMIT = 25;
+    ADULT_TICKET_PRICE = 25;
+    CHILD_TICKET_PRICE = 15;
+    INFANT_TICKET_PRICE = 0;
 
     /**
      * accountID should be an integer greater than zero
@@ -17,12 +17,12 @@ export default class TicketUtilService {
      * @returns { Boolean } or
      * @throws { InvalidPurchaseException }
      */
-    static isValidAccountID(accountID) {
+    isValidAccountID(accountID) {
         if (!(accountID > 0 && Number.isInteger(accountID))) {
             logger.log({
                 message: "Invalid Account ID used " + accountID,
                 level: "error"})
-            throw new InvalidPurchaseException("Account ID must be a positive integer");
+            throw new InvalidPurchaseException("UtilService error: Invalid account ID provided");
         }
         return true
     };
@@ -30,11 +30,11 @@ export default class TicketUtilService {
     /**
      * Is an adult present and the adult request not set to zero?
      * And are sufficient adults present for infants to sit on laps
-     * @param { [TicketTypeRequest] } ticketTypeRequests 
+     * @param { ...TicketTypeRequest } ticketTypeRequests 
      * @returns { Boolean } or 
      * @throws { InvalidPurchaseException }
      */
-    static hasValidAmountOfAdultsPresent(ticketTypeRequests) {
+    hasValidAmountOfAdultsPresent(ticketTypeRequests) {
         let adultsRequested = 0;
         let infantsRequested = 0;
         let ticketRequests = Array.from(ticketTypeRequests)
@@ -47,49 +47,46 @@ export default class TicketUtilService {
                 adultsRequested += req.getNoOfTickets();
             }
         });
-        if (adultsRequested <= 0 || infantsRequested > adultsRequested) {
+        if (adultsRequested == 0 || (infantsRequested > adultsRequested)) {
             logger.log({
                 message: "Insufficient adults for infants present: adults: " + adultsRequested + " infants: " + infantsRequested,
-                level: "error"})
+                level: "debug"})
             throw new InvalidPurchaseException("Request did not contain the required number of adults")
         }
         return true
     };
 
-
-
     /**
      * Count the number of tickets in the collection of requests
      * @param { ...TicketTypeRequest } ticketTypeRequests 
-     * @returns { Integer } ticketCount or 
+     * @returns { Integer } ticketCount or
      * @throws { InvalidPurchaseException }
      */
-    static countAndValidateTicketsInRequest(ticketTypeRequests) {
+    countAndValidateTicketsInRequest (ticketTypeRequests) {
         let ticketCount = 0;
         let ticketRequests = Array.from(ticketTypeRequests)
-        ticketRequests.forEach(req => {
-            if (req.getNoOfTickets() !== 0) {
-                ticketCount += req.getNoOfTickets();
-            }
-        })
+        ticketRequests.forEach((request) => {
+            ticketCount += request.getNoOfTickets();
+        });
+
         if (ticketCount > this.MAXIMUM_TICKET_LIMIT) {
             logger.log({
                 message: "request > max tickets allowed" + ticketCount,
                 level: "error"})
             throw new InvalidPurchaseException("Maximum ticket limit exceeded")
         }
+
         return ticketCount
-
     };
-
+   
     /**
      * Count the number of seats required for the request
-     * @param { [TicketTypeRequest] } ticketTypeRequests 
+     * @param { ...TicketTypeRequest } ticketTypeRequests 
      * @returns { Integer } seatCount
      */
-    static countSeatsInRequest(ticketTypeRequests) {
+    countSeatsInRequest(ticketTypeRequests) {
         let seatCount = 0;
-        let ticketRequests = Array.from(ticketTypeRequests)
+        let ticketRequests = Array.isArray(ticketTypeRequests) ? ticketTypeRequests :Array.from(ticketTypeRequests)
         ticketRequests.forEach(req => {
             if (req.getNoOfTickets() !== 0 && req.getTicketType() !== "INFANT") {
                 seatCount += req.getNoOfTickets();
@@ -99,26 +96,28 @@ export default class TicketUtilService {
     };
 
     /**
-     * 
-     * @param { [TicketTypeRequest] } ticketTypeRequests 
-     * @param { Integer } totalAmountToPay initialised to 0
+     * Calculate the payment for the collection of requests
+     * @param { ...TicketTypeRequest } ticketTypeRequests 
      * @returns { Integer } totalAmountToPay
      */
-    static calculatePayment(ticketTypeRequests, totalAmountToPay = 0) {
+    calculatePayment(ticketTypeRequests) {
+        let totalAmountToPay = 0;
         let ticketRequests = Array.from(ticketTypeRequests)
+
         ticketRequests.forEach(req => {
             if (req.getNoOfTickets() !== 0) {
                 switch (req.getTicketType()) {
                     case "ADULT":
-                        totalAmountToPay += this.ADULT_TICKET_PRICE * req.getNoOfTickets();
+                        totalAmountToPay += this.ADULT_TICKET_PRICE * parseInt(req.getNoOfTickets());
                         break;
                     case "CHILD":
-                        totalAmountToPay += this.CHILD_TICKET_PRICE * req.getNoOfTickets();
+                        totalAmountToPay += this.CHILD_TICKET_PRICE * parseInt(req.getNoOfTickets());
                         break;
                     case "INFANT":
-                        totalAmountToPay += this.INFANT_TICKET_PRICE * req.getNoOfTickets(); // currently 0
+                        totalAmountToPay += this.INFANT_TICKET_PRICE * parseInt(req.getNoOfTickets()); // currently 0
                         break;
                     default:
+                        totalAmountToPay += 0
                         break; // uncovered by tests as can't create a TicketTypeRequest with wrong type
                 }
             }
